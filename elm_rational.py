@@ -16,7 +16,8 @@ Created on Wed Apr 23 18:30:48 2025
 
 import numpy as np
 
-np.random.seed(21)
+np.random.seed(1234)
+#Good seeds: 21, 23454,1234 (best).
 
 def k(p):
     
@@ -30,18 +31,16 @@ def elm_basis(p,Nelm):
     
     W = np.random.randn(Nelm,p.shape[0]+1)
     
-    print(p.shape)
     
     bias = np.ones([1,p.shape[1]])
     
-    print(bias.shape)
     p_and_bias = np.vstack([bias,p])
     
     
     for i in range(Nelm):
         
         elm_vec[i] = np.tanh(W[i]@p_and_bias)
-    return elm_vec
+    return elm_vec,W
 
 
 
@@ -52,7 +51,7 @@ def elm(p,w):
     
     
     
-    elm_vec = elm_basis(p,Nelm)
+    elm_vec,W = elm_basis(p,Nelm)
 
     return w@elm_vec 
 
@@ -63,7 +62,7 @@ P = np.random.rand(2,N_data)
 
 Nelm = 30
 
-elm_out = elm_basis(P,Nelm)
+elm_out,W = elm_basis(P,Nelm)
 
 rational_out = np.atleast_2d(k(P))
 
@@ -78,4 +77,10 @@ s_inv = np.diag(s/(s**2 + reg**2))
 
 theta = rational_out@V@s_inv@U.T 
 
-print(np.mean(np.abs((rational_out - theta@elm_out)/rational_out))*100,"%")     
+print(np.mean(np.abs((rational_out - theta@elm_out)/rational_out))*100,"%")
+
+import scipy.io as io
+
+savedict = {'W':W}
+
+io.savemat("elm_weights.mat",savedict)     

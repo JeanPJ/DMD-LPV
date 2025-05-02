@@ -14,7 +14,7 @@ import numpy as np
 
 
 
-load_dict = io.loadmat(open("lineardiffusion_data002.mat",'rb'))
+load_dict = io.loadmat(open("nonpolydiffusion_data_of99states.mat",'rb'))
 
 
 T_plot = load_dict['T_plot']

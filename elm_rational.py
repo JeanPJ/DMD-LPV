@@ -60,7 +60,7 @@ N_data = 100
 P = np.random.rand(2,N_data)
 
 
-Nelm = 30
+Nelm = 15
 
 elm_out,W = elm_basis(P,Nelm)
 

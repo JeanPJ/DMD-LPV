@@ -58,13 +58,15 @@ print(parameter_data.shape)
 
 
 e_list = []
-red_order_list = [0]
+red_order_list = [100]
 #red_order_list = [50]
 
-pod_rank = 99
+pod_rank = 10
+
+reg = 1e-2
 
 for red_order in red_order_list:
-    e = diffusion_black_box_model.global_train(T_plot_init.T,u_signal.T,parameter_data.T,T_plot.T,red_order = red_order,rank = pod_rank)
+    e = diffusion_black_box_model.global_train(T_plot_init.T,u_signal.T,parameter_data.T,T_plot.T,red_order = red_order,rank = pod_rank,reg = reg)
     #e = diffusion_black_box_model.global_train(T_plot_init.T,u_signal.T,parameter_data.T,T_plot.T,red_order = red_order)
     e_list += [e]
     
@@ -90,18 +92,18 @@ simtime = T_test.shape[0]
 
 
 T_sim = np.empty(simtime)
-# T0 = np.zeros([number_of_states, 1])
+T0 = np.zeros([number_of_states, 1])
 
-# z0 = diffusion_black_box_model.get_state_reduction(T0)
-# z = z0
+z0 = diffusion_black_box_model.get_state_reduction(T0)
+z = z0
 
-z = T0
+#z = T0
 
 for k in range(simtime):
 
     z = diffusion_black_box_model.update_latent(z, u_test[k], p_test[:,k:k+1])
-    #T_sim[k] = (diffusion_black_box_model.T@z).flatten()[-1]
-    T_sim[k] = z.flatten()[-1]
+    T_sim[k] = (diffusion_black_box_model.T@z).flatten()[-1]
+    #T_sim[k] = z.flatten()[-1]
     
 plt.plot(T_sim,label = "ELM DMD-LPV")
 plt.plot(T_test[:, -1],label = "Test Signal")

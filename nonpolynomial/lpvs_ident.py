@@ -610,6 +610,205 @@ class BlackBoxLPVS:
         
         
         return s/np.sum(s)
+    
+    
+    def get_svd_from_data(self,X,U,P,par_rank = 0,par_rank_in = 0):
         
+        
+        
+        if par_rank == 0 and par_rank_in == 0:
+            true_X = np.empty([self.n_s*self.n_f,X.shape[1]])
+            true_U = np.empty([self.n_in*self.n_fin,U.shape[1]])
+            for t in range(X.shape[1]):
+            
+                true_X[:,t:t+1] = np.kron(self.sc_f(P[:,t:t+1]),X[:,t:t+1])
+                true_U[:,t:t+1] = np.kron(self.sc_fin(P[:,t:t+1]),U[:,t:t+1])
+        
+        
+            
+            
+        elif par_rank > 0 and par_rank_in == 0:
+            
+            features_state = np.empty([self.n_f,X.shape[1]])
+            
+            for t in range(X.shape[1]):
+                features_state[:,t:t+1] = self.sc_f(P[:,t:t+1])
+                
+            Ufs,sfs,Vtfs = np.linalg.svd(features_state,full_matrices=False)
+            
+            self.Tpca = Ufs[:,:par_rank]
+            
+            features_state_reduced = self.Tpca.T@features_state
+            
+            
+            true_X = np.empty([self.n_s*par_rank,X.shape[1]])
+            true_U = np.empty([self.n_in*self.n_fin,U.shape[1]])
+            
+            for t in range(X.shape[1]):
+            
+                true_X[:,t:t+1] = np.kron(features_state_reduced[:,t:t+1],X[:,t:t+1])
+                true_U[:,t:t+1] = np.kron(self.sc_fin(P[:,t:t+1]),U[:,t:t+1])
+            
+            
+            
+        elif par_rank == 0 and par_rank_in > 0:
+            features_input = np.empty([self.n_fin,X.shape[1]])
+            
+            for t in range(X.shape[1]):
+                features_input[:,t:t+1] = self.sc_fin(P[:,t:t+1])
+                
+            Ufin,sfin,Vtfin = np.linalg.svd(features_input,full_matrices=False)
+            
+            self.Tpca_in = Ufin[:,:par_rank]
+            
+            features_input_reduced = self.Tpca_in.T@features_input
+            
+            
+            true_X = np.empty([self.n_s*self.n_f,X.shape[1]])
+            true_U = np.empty([self.n_in*par_rank_in,U.shape[1]])
+            
+            for t in range(X.shape[1]):
+            
+                true_X[:,t:t+1] = np.kron(self.sc_f(P[:,t:t+1]),X[:,t:t+1])
+                true_U[:,t:t+1] = np.kron(features_input_reduced[:,t:t+1],U[:,t:t+1])
+        else:
+            features_state = np.empty([self.n_f,X.shape[1]])
+            features_input = np.empty([self.n_fin,X.shape[1]])
+            
+            for t in range(X.shape[1]):
+                features_state[:,t:t+1] = self.sc_f(P[:,t:t+1])
+                features_input[:,t:t+1] = self.sc_fin(P[:,t:t+1])
+                
+            Ufs,sfs,Vtfs = np.linalg.svd(features_state,full_matrices=False)
+            
+            self.Tpca = Ufs[:,:par_rank]
+            
+            features_state_reduced = self.Tpca.T@features_state
+            
+            Ufin,sfin,Vtfin = np.linalg.svd(features_input,full_matrices=False)
+            
+            self.Tpca_in = Ufin[:,:par_rank]
+            
+            features_input_reduced = self.Tpca_in.T@features_input
+            
+            true_X = np.empty([self.n_s*par_rank,X.shape[1]])
+            true_U = np.empty([self.n_in*par_rank_in,U.shape[1]])
+            
+            for t in range(X.shape[1]):
+            
+                true_X[:,t:t+1] = np.kron(features_state_reduced[:,t:t+1],X[:,t:t+1])
+                true_U[:,t:t+1] = np.kron(features_input_reduced[:,t:t+1],U[:,t:t+1])
+            
+        
+        INPUT = np.vstack([true_X,true_U])    
+        
+        #U_svd, s, V  = sla.svd(INPUT,full_matrices = False)
+        
+        
+        
+        U_svd, s, V  = sla.svd(INPUT,full_matrices = False)
+        
+        V = V.T
+        
+        
+        return U_svd,s,V
+        
+        
+    def train_from_svd(self,U_svd,s,V,Y,par_rank = 0,red_order=0,rank=0,reg=0):
+        
+        
+        s_reverse = s/(s**2 + reg**2)
+        red_order_ls = red_order
+        
+        if red_order == 0 and rank == 0: #full order model case, least squares is fully solved
+        
+        
+        
+            s_reverse = np.diag(s_reverse)
+        
+            prod = Y@V@s_reverse
+            
+            if par_rank == 0:
+        
+                self.W_A = prod@U_svd[:self.n_f*self.n_s,:].T
+                self.W_B = prod@U_svd[self.n_f*self.n_s:,:].T
+                
+            else:
+                
+                self.W_A = prod@U_svd[:self.n_s*par_rank,:].T
+                self.W_B = prod@U_svd[self.n_s*par_rank:,:].T
+            
+            
+            #return np.mean((self.W_A@true_X + self.W_B@true_U - Y)**2)
+        
+        elif rank == 0: #full order model case, Procrustes problem with rank(A) = red_order being solved.
+            
+            
+            
+            
+            #red_order_ls = red_order*self.n_f
+            
+        
+        
+            Sigma_r = np.diag(s_reverse[:red_order_ls]) #pruning the singvals
+        
+            prod = Y@V[:,:red_order_ls]@Sigma_r
+            
+            if par_rank == 0:
+        
+                self.W_A = prod@U_svd[:self.n_f*self.n_s,:red_order_ls].T
+                self.W_B = prod@U_svd[self.n_f*self.n_s:,:red_order_ls].T
+                
+            else:
+                
+                self.W_A = prod@U_svd[:self.n_s*par_rank,:red_order_ls].T
+                self.W_B = prod@U_svd[self.n_s*par_rank:,:red_order_ls].T
+            
+            
+            
+            # squared_error = (self.W_A@true_X + self.W_B@true_U - Y)**2
+            
+            # mean_squared_errors = np.mean(squared_error,axis = 1)
+            
+            # print(mean_squared_errors.shape)
+            
+            # mean_of_means = np.mean(mean_squared_errors)
+            
+            # return np.mean((self.W_A@true_X + self.W_B@true_U - Y)**2)
+            
+        else: #Procrustes problem with ROM.
+                
+            Ut,st,Vt = np.linalg.svd(Y,full_matrices = False)
+            
+            self.T = Ut[:,:rank]    
+               
+            
+            Sigma_r = np.diag(s_reverse[:red_order_ls])
+            
+            #Ut,St,VtT = ssla.svds(Y,k=rank)
+            #Ut,St,VtT = ssla.svds(Y,k=rank,return_singular_vectors='u')
+            
+            #Vt = VtT.T
+            
+            
+            bigT = np.kron(np.eye(self.n_f),self.T)
+            
+        
+            prod = Y@V[:,:red_order_ls]@Sigma_r
+            
+            
+            if par_rank == 0:
+        
+                self.W_A = self.T.T@prod@U_svd[:self.n_f*self.n_s,:red_order_ls].T@bigT
+                self.W_B = self.T.T@prod@U_svd[self.n_f*self.n_s:,:red_order_ls].T
+                
+            else:
+                
+                self.W_A = self.T.T@prod@U_svd[:par_rank*self.n_s,:red_order_ls].T@bigT
+                self.W_B = self.T.T@prod@U_svd[par_rank*self.n_s:,:red_order_ls].T
+            
+            
+          
+    
         
     

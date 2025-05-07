@@ -58,12 +58,12 @@ print(parameter_data.shape)
 
 
 e_list = []
-red_order_list = [100]
+red_order_list = [200]
 #red_order_list = [50]
 
-pod_rank = 10
+pod_rank = 5
 
-reg = 1e-2
+reg = 1
 
 for red_order in red_order_list:
     e = diffusion_black_box_model.global_train(T_plot_init.T,u_signal.T,parameter_data.T,T_plot.T,red_order = red_order,rank = pod_rank,reg = reg)

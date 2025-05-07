@@ -14,7 +14,7 @@ import scipy.io as io
 def rat_k(p):
     
     
-    return p[0]*p[1]/(p[0] + p[1])**2
+    return p[0]*p[1]/(p[0] + p[1]+1)**2
 
 def PRBS(min,max,num_steps,minimum_step):
     PRBS_sig = np.empty(num_steps)
@@ -157,14 +157,15 @@ if __name__ == '__main__':
     
     
     minimum_step = 15000//5
-    simtime = minimum_step*30
+    minimum_step_p = 1500
+    simtime = minimum_step*60
 
     u_signal = RFRAS(0,4,simtime,minimum_step)
     n_p = 2
     p_signal = np.empty([n_p,simtime])
     
-    p_signal[0] = RFRAS(0,1,simtime,minimum_step)
-    p_signal[1] = RFRAS(0,1,simtime,minimum_step)
+    p_signal[0] = RFRAS(0,1,simtime,minimum_step_p)
+    p_signal[1] = RFRAS(0,1,simtime,minimum_step_p)
     
     T_plot = np.empty([simtime,number_of_states])
     for k in range(simtime):

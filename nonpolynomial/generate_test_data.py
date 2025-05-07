@@ -19,9 +19,9 @@ T0 = 0*np.ones([number_of_states,1])
 diff_eq = OnedDiffusionEquation(h,T0)
 
 
-minimum_step = 15000
+minimum_step = 10000
 minimum_step_p = 1500
-simtime = minimum_step*3
+simtime = minimum_step*5
 
 u_signal = RFRAS(0,4,simtime,minimum_step)
 #u_signal = np.ones(simtime)

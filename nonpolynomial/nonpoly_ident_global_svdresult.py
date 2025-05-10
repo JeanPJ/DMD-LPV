@@ -49,6 +49,8 @@ k_fun = lambda p:elm_basis(p,Nelm,w_elm)
 
 diffusion_black_box_model = BlackBoxLPVS(n_in,n_p,number_of_states,k_fun,k_fun)
 
+golden_model = BlackBoxLPVS(n_in,n_p,number_of_states,k_fun,k_fun)
+
 
 #T_plot_lessdata = T_plot[:T_plot.shape[0]//2]
 
@@ -64,51 +66,69 @@ print(parameter_data.shape)
 
 
 e_list = []
-red_order_list = [10,20,30,40,50]
+red_order_list = [110]
 #red_order_list = [50]
 
-pod_rank = 5
+pod_rank = [10]
 
-reg = 0.01
+#reg = 1e-1 esse deu certo
+
+reg = 5e-2
 
 for red_order in red_order_list:
-    diffusion_black_box_model.train_from_svd(U_svd,s,V,T_plot.T,red_order = red_order,rank = pod_rank,reg = reg)
-    #e = diffusion_black_box_model.global_train(T_plot_init.T,u_signal.T,parameter_data.T,T_plot.T,red_order = red_order)
-    
-    
-    
-
-
-    load_dict = io.loadmat(open("nonpolydiffusion_test.mat",'rb'))
-    
-    u_test = load_dict['u_signal'].T
-    p_test = load_dict['p_signal']
-    T_test = load_dict['T_plot']
-    
-    
-    simtime = T_test.shape[0]
-    
-    
-    T_sim = np.empty(simtime)
-    T0 = np.zeros([number_of_states, 1])
-    
-    z0 = diffusion_black_box_model.get_state_reduction(T0)
-    z = z0
-    
-    #z = T0
-    
-    for k in range(simtime):
-    
-        z = diffusion_black_box_model.update_latent(z, u_test[k], p_test[:,k:k+1])
-        T_sim[k] = (diffusion_black_box_model.T@z).flatten()[-1]
-        #T_sim[k] = z.flatten()[-1]
+    for pod in pod_rank:
+        diffusion_black_box_model.train_from_svd(U_svd,s,V,T_plot.T,red_order = red_order,rank = pod,reg = reg)
+        golden_model.train_from_svd(U_svd,s,V,T_plot.T,red_order = 0,rank = 0,reg = reg)
+        e = diffusion_black_box_model.get_error_from_series(T_plot_init.T,u_signal.T,parameter_data.T,T_plot.T)
+        e_golden = golden_model.get_error_from_series(T_plot_init.T,u_signal.T,parameter_data.T,T_plot.T)
+        print(e,e_golden, "training (reduced, LS)")
+        #e = diffusion_black_box_model.global_train(T_plot_init.T,u_signal.T,parameter_data.T,T_plot.T,red_order = red_order)
         
-    plt.plot(T_sim,label = "ELM DMD-LPV")
-    plt.plot(T_test[:, -1],label = "Test Signal")
-    plt.xlabel("timesteps")
-    plt.ylabel("T (global)")
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+        
+        
+    
+    
+        load_dict = io.loadmat(open("nonpolydiffusion_test.mat",'rb'))
+        
+        u_test = load_dict['u_signal'].T
+        p_test = load_dict['p_signal']
+        T_test = load_dict['T_plot']
+        
+        
+        simtime = T_test.shape[0]
+        
+        
+        T_sim = np.empty(simtime)
+        T_ls = np.empty(simtime)
+        T0 = np.zeros([number_of_states, 1])
+        
+        z0 = diffusion_black_box_model.get_state_reduction(T0)
+        z = z0
+        
+        z_ls = T0
+        
+        
+        T_test_init = np.vstack([T0.T,T_test[:-1,:]])
+        
+        
+        e_test = diffusion_black_box_model.get_error_from_series(T_test_init.T,u_test.T,p_test,T_test.T)
+        e_ls = golden_model.get_error_from_series(T_test_init.T,u_test.T,p_test,T_test.T)
+        print("test error:",e_test,e_ls)
+        
+        for k in range(simtime):
+        
+            z = diffusion_black_box_model.update_latent(z, u_test[k], p_test[:,k:k+1])
+            z_ls = golden_model.update_latent(z_ls, u_test[k], p_test[:,k:k+1])
+            T_sim[k] = (diffusion_black_box_model.T@z).flatten()[-1]
+            T_ls[k] = z_ls.flatten()[-1]
+            
+        plt.plot(T_sim,label = f"ELM DMD-LPV POD rank = {pod} Pr = {red_order}")
+        plt.plot(T_ls,label = f"ELM LPV (LS)")
+        plt.plot(T_test[:, -1],label = "Test Signal")
+        plt.xlabel("timesteps")
+        plt.ylabel("T (global)")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
         
     

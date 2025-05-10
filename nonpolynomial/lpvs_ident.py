@@ -583,7 +583,10 @@ class BlackBoxLPVS:
             true_U[:,t:t+1] = np.kron(self.sc_fin(P[:,t:t+1]),U[:,t:t+1])
         
         
-        if self.T.shape[1] == self.T.shape[0] or not hasattr(self,'T'):
+            
+            
+        if not hasattr(self,'T'):
+        #if self.T.shape[1] == self.T.shape[0] or not hasattr(self,'T'):
         
             return np.mean((self.W_A@true_X + self.W_B@true_U - Y)**2)
         else:

@@ -58,7 +58,7 @@ def RFRAS(min,max,num_steps,minimum_step):
 class OnedDiffusionEquation:
     
     
-    def __init__(self,h,T0,Ts = 1e-5):
+    def __init__(self,h,T0,Ts = 5e-4):
         
         
         self.Ts = Ts
@@ -135,7 +135,7 @@ class OnedDiffusionEquation:
         return dT
     
     def model_output(self,u,p):
-        number_of_runs = 100
+        number_of_runs = 20
         for i in range(number_of_runs):
             k1 = self.compute_dt(self.T,u,p)
             k2 = self.compute_dt(self.T + k1*self.Ts/2,u,p)
@@ -156,9 +156,9 @@ if __name__ == '__main__':
     diff_eq = OnedDiffusionEquation(h,T0)
     
     
-    minimum_step = 15000//5
-    minimum_step_p = 1500
-    simtime = minimum_step*60
+    minimum_step = 2000
+    minimum_step_p = 150
+    simtime = minimum_step*120
 
     u_signal = RFRAS(0,4,simtime,minimum_step)
     n_p = 2

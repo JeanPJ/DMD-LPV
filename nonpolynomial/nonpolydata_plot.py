@@ -27,7 +27,7 @@ simtime = T_plot.shape[0]
 
 number_of_states = T_plot.shape[1]
 
-Ts = 1e-3
+Ts = 1e-2
 
 
 if __name__ == '__main__':

@@ -77,7 +77,7 @@ reg = 5e-2
 
 for red_order in red_order_list:
     for pod in pod_rank:
-        diffusion_black_box_model.train_from_svd(U_svd,s,V,T_plot.T,red_order = red_order,rank = pod,reg = reg)
+        diffusion_black_box_model.train_from_svd(U_svd,s,V,T_plot.T,red_order = red_order,rank = pod,reg = 0)
         golden_model.train_from_svd(U_svd,s,V,T_plot.T,red_order = 0,rank = 0,reg = reg)
         e = diffusion_black_box_model.get_error_from_series(T_plot_init.T,u_signal.T,parameter_data.T,T_plot.T)
         e_golden = golden_model.get_error_from_series(T_plot_init.T,u_signal.T,parameter_data.T,T_plot.T)
@@ -122,13 +122,36 @@ for red_order in red_order_list:
             T_sim[k] = (diffusion_black_box_model.T@z).flatten()[-1]
             T_ls[k] = z_ls.flatten()[-1]
             
-        plt.plot(T_sim,label = f"ELM DMD-LPV POD rank = {pod} Pr = {red_order}")
-        plt.plot(T_ls,label = f"ELM LPV (LS)")
-        plt.plot(T_test[:, -1],label = "Test Signal")
-        plt.xlabel("timesteps")
-        plt.ylabel("T (global)")
-        plt.legend()
-        plt.grid(True)
+        # plt.plot(T_sim,label = f"ELM DMD-LPV POD rank = {pod} Pr = {red_order}")
+        # plt.plot(T_ls,label = f"ELM LPV (LS)")
+        # plt.plot(T_test[:, -1],label = "Test Signal")
+        # plt.xlabel("timesteps")
+        # plt.ylabel("T (global)")
+        # plt.legend()
+        # plt.grid(True)
+        # plt.show()
+        
+        
+        fig, axs = plt.subplots(4)
+        Ts = 1e-2
+        fig.suptitle('ELM DMD-LPV Simulation over Test Data')
+        axs[0].plot(T_sim,label = f"ELM DMD-LPV POD rank = {pod} Pr = {red_order}")
+        axs[0].plot(T_ls,label = "ELM LPV (LS)")
+        axs[0].plot(T_test[:, -1],label = "Test Signal")
+        axs[1].plot(Ts*np.arange(simtime),u_test)
+        axs[2].plot(Ts*np.arange(simtime),p_test[0,:])
+        axs[3].plot(Ts*np.arange(simtime),p_test[1,:])
+        
+        axs[0].grid(True)
+        axs[1].grid(True)
+        axs[2].grid(True)
+        axs[3].grid(True)
+        plt.xlabel("time (s)")
+        axs[0].set_ylabel("$T$")
+        axs[1].set_ylabel("$u$")
+        axs[2].set_ylabel("$p_1$")
+        axs[3].set_ylabel("$p_2$")
+        axs[0].legend()
         plt.show()
         
     

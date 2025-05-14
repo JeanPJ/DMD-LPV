@@ -83,6 +83,8 @@ class BlackBoxLTIS:
         self.A = prod@U_svd[:self.n_s,:].T
         self.B = prod@U_svd[self.n_s:,:].T
         
+        return np.mean(np.abs(Y - self.A@X - self.B@U))
+        
         
 
 class BlackBoxLPVS:
@@ -426,7 +428,9 @@ class BlackBoxLPVS:
             
             dummy_LTI = BlackBoxLTIS(self.n_in, self.n_s)
             
-            dummy_LTI.train(X_list[i], U_list[i], Y_list[i])
+            e = dummy_LTI.train(X_list[i], U_list[i], Y_list[i])
+            
+            print(e,f"dataset {i}")
             
             LTI_list += [dummy_LTI]
         
@@ -511,11 +515,13 @@ class BlackBoxLPVS:
             
         else:
             number_of_states = pod_rank
-        for i,p in enumerate(p_list):
+        for i,p in enumerate(p_list.T):
             
             dummy_LTI = BlackBoxLTIS(self.n_in, number_of_states)
             
-            dummy_LTI.train(self.T.T@X_list[i], U_list[i], self.T.T@Y_list[i])
+            e = dummy_LTI.train(self.T.T@X_list[i], U_list[i], self.T.T@Y_list[i])
+            
+            print(e,f"error for dataset {i}",p)
             
             LTI_list += [dummy_LTI]
         

@@ -22,12 +22,14 @@ if __name__ == '__main__':
     
     
     minimum_step = 2000
-    simtime = minimum_step*8
+    simtime = minimum_step*3
     
     #p_list = [0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0]
     
-    p1_list = [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]
-    p2_list = [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]
+    p1_list = [0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1]
+    p2_list = [0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1]
+    
+    p_list = []
     
     T_plot_list = []
     
@@ -42,6 +44,7 @@ if __name__ == '__main__':
             u_signal = RFRAS(0,4,simtime,minimum_step)
             u_signal_list += [np.atleast_2d(u_signal)]
             p = np.array([p1,p2])
+            p_list += [p]
             for k in range(simtime):
                 T_plot[k] = diff_eq.model_output(u_signal[k],p).flatten()
                 if k%10 == 0:
@@ -50,7 +53,7 @@ if __name__ == '__main__':
             plt.plot(T_plot[:,:])
             plt.show()
             T_plot_list += [T_plot.T] 
-    save_dict = {'u_signal_list':u_signal_list,'p1_list':p1_list,'p2_list':p2_list,'T_plot_list':T_plot_list}
+    save_dict = {'u_signal_list':u_signal_list,'p_list':p_list,'T_plot_list':T_plot_list}
     filename = "nonpolydiffusion_data_local" + str(number_of_states) + "states.mat"
     save_file = open(filename,'wb')
     io.savemat(save_file,save_dict)

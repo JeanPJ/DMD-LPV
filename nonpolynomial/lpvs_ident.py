@@ -428,7 +428,7 @@ class BlackBoxLPVS:
             
             dummy_LTI = BlackBoxLTIS(self.n_in, self.n_s)
             
-            e = dummy_LTI.train(X_list[i], U_list[i], Y_list[i])
+            e = dummy_LTI.train(X_list[i], U_list[i], Y_list[i],reg = reg)
             
             print(e,f"dataset {i}")
             

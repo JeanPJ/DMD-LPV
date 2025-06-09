@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from lpvs_ident import *
 
 
-h = 0.01
+h = 0.02
 number_of_states = int(np.ceil(1/h) - 1)
 T0 = 0*np.ones([number_of_states,1])
 diff_eq = OnedDiffusionEquation(h,T0)
@@ -39,8 +39,8 @@ for k in range(simtime):
         print(k)
         print(T_plot[k,0])
     
-plt.plot(T_plot[:,:])
-plt.show()
+# plt.plot(T_plot[:,:])
+# plt.show()
 
 save_dict = {'u_signal':u_signal,'p_signal':p_signal,'T_plot':T_plot}
 

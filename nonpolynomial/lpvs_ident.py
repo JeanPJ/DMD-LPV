@@ -424,7 +424,7 @@ class BlackBoxLPVS:
             
             self.T = self.T = U[:,:pod_rank]
         
-        for i,p in enumerate(p_list):
+        for i,p in enumerate(p_list.T):
             
             dummy_LTI = BlackBoxLTIS(self.n_in, self.n_s)
             
@@ -437,24 +437,36 @@ class BlackBoxLPVS:
         
         if pod_rank == 0:
             ident_size = self.n_s
+            OUTPUT_A = LTI_list[0].A
+            OUTPUT_B = LTI_list[0].B
             
         else:
             ident_size = pod_rank
+            OUTPUT_A = self.T.T@LTI_list[0].A@self.T
+            OUTPUT_B = self.T.T@LTI_list[0].B
         
         
         INPUT_A = np.kron(self.sc_f(p_list[:,0:1]),np.eye(ident_size))
         INPUT_B = np.kron(self.sc_fin(p_list[:,0:1]),np.eye(self.n_in))
         
-        OUTPUT_A = self.T.T@LTI_list[0].A@self.T
-        OUTPUT_B = self.T.T@LTI_list[0].B
+        
+        
+        
         for n,LTI in enumerate(LTI_list):
             
             if n == 0:
                 pass
             else:
-                OUTPUT_A = np.hstack([OUTPUT_A,LTI_list[n].A])
-                OUTPUT_B = np.hstack([OUTPUT_B,LTI_list[n].B])
                 
+                if pod_rank == 0:
+                    OUTPUT_A = np.hstack([OUTPUT_A,LTI_list[n].A])
+                    OUTPUT_B = np.hstack([OUTPUT_B,LTI_list[n].B])
+                
+                else:
+                    OUTPUT_A = np.hstack([OUTPUT_A,self.T.T@LTI_list[n].A@self.T])
+                    OUTPUT_B = np.hstack([OUTPUT_B,self.T.T@LTI_list[n].B])
+                
+                    
                 
                 INPUT_A = np.hstack([INPUT_A,np.kron(self.sc_f(p_list[:,n:n+1]),np.eye(ident_size))])
                 INPUT_B = np.hstack([INPUT_B,np.kron(self.sc_fin(p_list[:,n:n+1]),np.eye(self.n_in))])

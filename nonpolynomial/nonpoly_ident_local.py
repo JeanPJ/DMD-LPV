@@ -11,6 +11,7 @@ import scipy.linalg as sla
 import scipy.io as io
 from lpvs_ident import *
 import pickle
+import matplotlib.pyplot as plt
 
 load_dict = io.loadmat(open("nonpolydiffusion_data_local99states.mat",'rb'))
 #load_dict = pickle.load(open("Improviso.pickle",'rb'))
@@ -24,7 +25,7 @@ p_list = np.array(load_dict['p_list'])
 
 
 
-from nonpolydata_plot import *
+#from nonpolydata_plot import *
 from lpvs_ident import *
 
 w_elm = io.loadmat("elm_weights.mat")['W']
@@ -60,6 +61,9 @@ Nelm = 15
 
 k_fun = lambda p:elm_basis(p,Nelm,w_elm)
 
+h = 0.01
+number_of_states = int(np.ceil(1/h) - 1)
+
 
 diffusion_black_box_model = BlackBoxLPVS(n_in,n_p,number_of_states,k_fun,k_fun)
 
@@ -81,12 +85,11 @@ print(T_plot_list[0].shape)
 
 rank_list = [10]
 
-pr_rank_list = [70]
+pr_rank_list = [10]
 
 p_list = p_list.T
 
-reg = 5e-2
-
+reg = 0
 for rank in rank_list:
     
     for pr_rank in pr_rank_list:
@@ -96,10 +99,10 @@ for rank in rank_list:
     
     
     
-        T_plot_init = np.vstack([T0.T,T_plot[:-1,:]])
-        e = diffusion_black_box_model.get_error_from_series(T_plot_init.T, u_signal.T, p_signal.T, T_plot.T)
+        #T_plot_init = np.vstack([T0.T,T_plot[:-1,:]])
+        #e = diffusion_black_box_model.get_error_from_series(T_plot_init.T, u_signal.T, p_signal.T, T_plot.T)
     
-        print(e,"error for rank (proc and pod)",rank)
+        #print(e,"error for rank (proc and pod)",rank)
         
         
         
